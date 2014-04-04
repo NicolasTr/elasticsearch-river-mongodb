@@ -116,16 +116,25 @@ class Slurper implements Runnable {
                 // Slurp from oplog
                 DBCursor cursor = null;
                 try {
-                    cursor = oplogCursor(startTimestamp);
-                    if (cursor == null) {
-                        cursor = processFullOplog();
+                    for(int i = 1; i <= 10; i++) {
+                        try {
+                            cursor = oplogCursor(startTimestamp);
+                            if (cursor == null) {
+                                cursor = processFullOplog();
+                            }
+                            while (cursor.hasNext()) {
+                                DBObject item = cursor.next();
+                                startTimestamp = processOplogEntry(item, startTimestamp);
+                            }
+                            logger.debug("Before waiting for 500 ms");
+                            Thread.sleep(500);
+                            break;
+                        } catch(MongoException.Network ex) {
+                            logger.warn("Network Exception while looping in cursor (attempt " + i + "). Retrying in 15s...", ex);
+                            cursor.close();
+                            Thread.sleep(15000);
+                        }
                     }
-                    while (cursor.hasNext()) {
-                        DBObject item = cursor.next();
-                        startTimestamp = processOplogEntry(item, startTimestamp);
-                    }
-                    logger.debug("Before waiting for 500 ms");
-                    Thread.sleep(500);
                 } catch (MongoException.CursorNotFound e) {
                     logger.info("Cursor {} has been closed. About to open a new cusor.", cursor.getCursorId());
                     logger.debug("Total document inserted [{}]", totalDocuments.get());
