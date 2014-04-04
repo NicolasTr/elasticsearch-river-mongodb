@@ -205,6 +205,16 @@ public class MongoDBRiver extends AbstractRiverComponent implements River {
             }
 
             // Tail the oplog
+            boolean isMongos = false;
+            for(int i = 1; i <= 10; i++) {
+                try {
+                    isMongos = isMongos();
+                    break;
+                } catch(MongoException ex) {
+                    logger.warn("MongoException while calling isMongos() (attempt " + i + "). Retrying in 15s...", ex);
+                    Thread.sleep(15000);
+               }
+            }
             if (isMongos()) {
                 DBCursor cursor = getConfigDb().getCollection("shards").find();
                 try {
