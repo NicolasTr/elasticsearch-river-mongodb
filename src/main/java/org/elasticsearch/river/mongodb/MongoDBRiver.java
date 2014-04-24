@@ -208,7 +208,9 @@ public class MongoDBRiver extends AbstractRiverComponent implements River {
             boolean isMongos = false;
             for(int i = 1; i <= 10; i++) {
                 try {
+                    logger.warn("Trying to call isMongos();");
                     isMongos = isMongos();
+                    logger.warn("Trying to call isMongos(); - ok");
                     break;
                 } catch(MongoException ex) {
                     logger.warn("MongoException while calling isMongos() (attempt " + i + "). Retrying in 15s...", ex);

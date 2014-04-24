@@ -118,6 +118,7 @@ class Slurper implements Runnable {
                 try {
                     for(int i = 1; i <= 10; i++) {
                         try {
+                            logger.warn("Trying to read the oplog...");
                             cursor = oplogCursor(startTimestamp);
                             if (cursor == null) {
                                 cursor = processFullOplog();
@@ -126,6 +127,7 @@ class Slurper implements Runnable {
                                 DBObject item = cursor.next();
                                 startTimestamp = processOplogEntry(item, startTimestamp);
                             }
+                            logger.warn("Trying to read the oplog... - ok");
                             logger.debug("Before waiting for 500 ms");
                             Thread.sleep(500);
                             break;
